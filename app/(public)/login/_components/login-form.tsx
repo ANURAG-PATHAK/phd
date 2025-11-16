@@ -19,7 +19,9 @@ type FormState = {
 export function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+    const callbackUrl = searchParams.get("callbackUrl");
+    const redirectParam = searchParams.get("redirect");
+    const initialRedirectTarget = callbackUrl ?? redirectParam ?? "/";
     const [formState, setFormState] = useState<FormState>({
         email: "",
         password: "",
@@ -27,6 +29,53 @@ export function LoginForm() {
     });
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
+
+    function normalizeInternalUrl(url: string | null): string | null {
+        if (!url) {
+            return null;
+        }
+
+        try {
+            const parsed = new URL(url, window.location.origin);
+            if (parsed.origin !== window.location.origin) {
+                return null;
+            }
+            return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+        } catch {
+            return url.startsWith("/") ? url : null;
+        }
+    }
+
+    function preferredDestination(url: string | null): string | null {
+        const normalized = normalizeInternalUrl(url);
+        if (!normalized) {
+            return null;
+        }
+
+        if (normalized === "/" || normalized === "" || normalized === "/login") {
+            return null;
+        }
+
+        return normalized;
+    }
+
+    async function resolveDefaultDashboard(): Promise<string> {
+        try {
+            const response = await fetch("/api/auth/post-login", {
+                method: "GET",
+                cache: "no-store",
+            });
+
+            if (!response.ok) {
+                return "/";
+            }
+
+            const data: { redirectTo?: string } = await response.json();
+            return normalizeInternalUrl(data.redirectTo ?? "/") ?? "/";
+        } catch {
+            return "/";
+        }
+    }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -47,7 +96,9 @@ export function LoginForm() {
                 return;
             }
 
-            router.replace(callbackUrl);
+            const destination = preferredDestination(initialRedirectTarget) ?? (await resolveDefaultDashboard());
+
+            router.replace(destination);
             router.refresh();
         });
     }
