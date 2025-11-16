@@ -57,10 +57,10 @@ export function LoginForm() {
     }
 
     return (
-        <Card className="w-full max-w-md border-slate-800 bg-slate-950/70 text-slate-100 shadow-2xl shadow-fuchsia-900/10">
+        <Card className="w-full max-w-md border-border/60 bg-card/80 shadow-2xl shadow-primary/10 backdrop-blur">
             <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-white">Welcome back</CardTitle>
-                <CardDescription className="text-sm text-slate-400">
+                <CardTitle className="text-2xl font-semibold text-foreground">Welcome back</CardTitle>
+                <CardDescription>
                     Enter your credentials to access your Research X workspace.
                 </CardDescription>
             </CardHeader>
@@ -95,7 +95,7 @@ export function LoginForm() {
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="tenant">Tenant slug</Label>
-                            <span className="text-xs text-slate-400">Optional</span>
+                            <span className="text-xs text-muted-foreground">Optional</span>
                         </div>
                         <Input
                             id="tenant"
@@ -103,13 +103,13 @@ export function LoginForm() {
                             value={formState.tenant}
                             onChange={(event) => updateField("tenant", event.target.value)}
                         />
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted-foreground">
                             Provide the tenant slug if you belong to multiple campuses or programs.
                         </p>
                     </div>
 
                     {error ? (
-                        <Alert className="border-red-500/40 bg-red-950/40 text-red-200">
+                        <Alert variant="destructive">
                             <AlertTitle>Unable to sign in</AlertTitle>
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
@@ -117,7 +117,7 @@ export function LoginForm() {
 
                     <Button
                         type="submit"
-                        className="h-11 w-full rounded-full bg-fuchsia-500 text-slate-950 transition-transform duration-150 hover:-translate-y-0.5 hover:bg-fuchsia-400"
+                        className="h-11 w-full rounded-full"
                         disabled={isPending}
                     >
                         {isPending ? "Signing you in…" : "Sign in"}

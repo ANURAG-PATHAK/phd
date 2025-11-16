@@ -21,6 +21,7 @@ interface RegisterFormState {
 
 export function RegisterForm() {
     const router = useRouter();
+    const defaultErrorMessage = "Registration failed. Please try again.";
     const [formState, setFormState] = useState<RegisterFormState>({
         tenantName: "",
         tenantSlug: "",
@@ -64,8 +65,40 @@ export function RegisterForm() {
 
             if (!response.ok) {
                 const payload = await response.json().catch(() => null);
-                const message = (payload as { error?: string } | null)?.error ?? "Registration failed. Please try again.";
-                setError(message);
+                const rawError = (payload as { error?: unknown } | null)?.error;
+
+                const formattedError = (() => {
+                    if (!rawError) {
+                        return defaultErrorMessage;
+                    }
+
+                    if (typeof rawError === "string") {
+                        return rawError;
+                    }
+
+                    if (typeof rawError === "object") {
+                        const { formErrors, fieldErrors } = rawError as {
+                            formErrors?: string[];
+                            fieldErrors?: Record<string, string[]>;
+                        };
+
+                        const collected = [
+                            ...(Array.isArray(formErrors) ? formErrors : []),
+                            ...
+                            (fieldErrors
+                                ? Object.values(fieldErrors).flat()
+                                : []),
+                        ].filter(Boolean);
+
+                        if (collected.length > 0) {
+                            return collected.join(" ");
+                        }
+                    }
+
+                    return defaultErrorMessage;
+                })();
+
+                setError(formattedError);
                 return;
             }
 
@@ -87,10 +120,10 @@ export function RegisterForm() {
     }
 
     return (
-        <Card className="w-full border-slate-800 bg-slate-950/70 text-slate-100 shadow-2xl shadow-fuchsia-900/10">
+        <Card className="w-full max-w-md border-border/60 bg-card/80 text-foreground shadow-2xl shadow-primary/10 backdrop-blur">
             <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-white">Create a new tenant</CardTitle>
-                <CardDescription className="text-sm text-slate-400">
+                <CardTitle className="text-2xl font-semibold text-foreground">Create a new tenant</CardTitle>
+                <CardDescription className="text-muted-foreground">
                     Provision a fresh workspace for your program. You will be the primary administrator.
                 </CardDescription>
             </CardHeader>
@@ -184,24 +217,20 @@ export function RegisterForm() {
                     </div>
 
                     {error ? (
-                        <Alert className="border-red-500/40 bg-red-950/40 text-red-200">
+                        <Alert variant="destructive">
                             <AlertTitle>Unable to register</AlertTitle>
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     ) : null}
 
                     {success ? (
-                        <Alert className="border-emerald-500/40 bg-emerald-950/30 text-emerald-200">
+                        <Alert className="border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200">
                             <AlertTitle>Tenant created</AlertTitle>
                             <AlertDescription>{success}</AlertDescription>
                         </Alert>
                     ) : null}
 
-                    <Button
-                        type="submit"
-                        className="h-11 w-full rounded-full bg-fuchsia-500 text-slate-950 transition-transform duration-150 hover:-translate-y-0.5 hover:bg-fuchsia-400"
-                        disabled={isPending}
-                    >
+                    <Button type="submit" className="h-11 w-full rounded-full" disabled={isPending}>
                         {isPending ? "Provisioning…" : "Create tenant"}
                     </Button>
                 </form>

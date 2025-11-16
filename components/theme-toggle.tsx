@@ -11,7 +11,13 @@ export function ThemeToggle() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        if (typeof requestAnimationFrame === "function") {
+            const frame = requestAnimationFrame(() => setMounted(true));
+            return () => cancelAnimationFrame(frame);
+        }
+
+        const timeout = setTimeout(() => setMounted(true), 0);
+        return () => clearTimeout(timeout);
     }, []);
 
     const currentTheme = theme === "system" ? resolvedTheme : theme;
