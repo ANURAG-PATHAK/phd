@@ -184,10 +184,14 @@ async function main() {
     }
   );
 
-  const scholarMembership = await createMembership(scholarUser.id, RoleKey.SCHOLAR, {
-    primary: true,
-    title: "PhD Scholar",
-  });
+  const scholarMembership = await createMembership(
+    scholarUser.id,
+    RoleKey.SCHOLAR,
+    {
+      primary: true,
+      title: "PhD Scholar",
+    }
+  );
 
   await createMembership(developerUser.id, RoleKey.DEVELOPER, {
     primary: true,
@@ -236,32 +240,33 @@ async function main() {
     }),
   ]);
 
-  const [proposalMilestone, synopsisMilestone, thesisMilestone] = await Promise.all([
-    prisma.programMilestone.create({
-      data: {
-        programId: program.id,
-        name: "Proposal Defense",
-        order: 1,
-        dueInMonths: 6,
-      },
-    }),
-    prisma.programMilestone.create({
-      data: {
-        programId: program.id,
-        name: "Synopsis Submission",
-        order: 2,
-        dueInMonths: 18,
-      },
-    }),
-    prisma.programMilestone.create({
-      data: {
-        programId: program.id,
-        name: "Thesis Submission",
-        order: 3,
-        dueInMonths: 42,
-      },
-    }),
-  ]);
+  const [proposalMilestone, synopsisMilestone, thesisMilestone] =
+    await Promise.all([
+      prisma.programMilestone.create({
+        data: {
+          programId: program.id,
+          name: "Proposal Defense",
+          order: 1,
+          dueInMonths: 6,
+        },
+      }),
+      prisma.programMilestone.create({
+        data: {
+          programId: program.id,
+          name: "Synopsis Submission",
+          order: 2,
+          dueInMonths: 18,
+        },
+      }),
+      prisma.programMilestone.create({
+        data: {
+          programId: program.id,
+          name: "Thesis Submission",
+          order: 3,
+          dueInMonths: 42,
+        },
+      }),
+    ]);
 
   const admission = await prisma.admission.create({
     data: {
