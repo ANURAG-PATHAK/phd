@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { listTenantMembers, updateTenantMembershipStatus } from "@/lib/admin/users";
-import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
+import { ZodError } from "zod";
+
+import { createAdmission, listAdmissions } from "@/lib/admin/admissions";
 import {
   ForbiddenError,
   UnauthorizedError,
   requireMembership,
   requireSession,
 } from "@/lib/auth/session";
+import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
 
 export async function GET(
   _request: NextRequest,
@@ -22,12 +24,11 @@ export async function GET(
     });
 
     if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {
-      throw new ForbiddenError("Admin privileges are required");
+      throw new ForbiddenError("Admin privileges required");
     }
 
-    const members = await listTenantMembers(membership.tenantId);
-
-    return NextResponse.json({ data: members });
+    const admissions = await listAdmissions(membership.tenantId);
+    return NextResponse.json(admissions);
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -36,21 +37,20 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    console.error("Admin users GET error", error);
+    console.error("Admin admissions API error", error);
     return NextResponse.json(
-      { error: "Unable to load tenant users" },
+      { error: "Unable to load admissions" },
       { status: 500 }
     );
   }
 }
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
   context: { params: Promise<{ tenantSlug: string }> }
 ) {
   try {
     const { tenantSlug } = await context.params;
-    const body = await request.json();
     const session = await requireSession();
     const membership = requireMembership(session, {
       tenantSlug,
@@ -58,26 +58,27 @@ export async function PATCH(
     });
 
     if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {
-      throw new ForbiddenError("Admin privileges are required");
+      throw new ForbiddenError("Admin privileges required");
     }
 
-    const { membershipId, status } = body ?? {};
+    const payload = await request.json();
 
-    if (!membershipId || !status) {
-      return NextResponse.json(
-        { error: "membershipId and status are required" },
-        { status: 400 }
-      );
-    }
-
-    const updatedMembership = await updateTenantMembershipStatus({
+    const admission = await createAdmission({
       tenantId: membership.tenantId,
-      membershipId,
-      status,
-      actingMembershipId: membership.membershipId,
+      programId: payload.programId,
+      pathway: payload.pathway,
+      status: payload.status,
+      applicant: {
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+      },
+      notes: payload.notes,
+      source: payload.source,
+      metadata: payload.metadata,
     });
 
-    return NextResponse.json({ data: updatedMembership });
+    return NextResponse.json(admission, { status: 201 });
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -85,10 +86,16 @@ export async function PATCH(
     if (error instanceof ForbiddenError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: "Invalid admission payload", details: error.flatten() },
+        { status: 422 }
+      );
+    }
 
-    console.error("Admin users PATCH error", error);
+    console.error("Create admission API error", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to update membership" },
+      { error: "Unable to create admission" },
       { status: 500 }
     );
   }

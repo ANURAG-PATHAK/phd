@@ -31,6 +31,16 @@ export type AdminDashboardSummary = {
     outstandingFees: number;
     outstandingFeesCurrency: string;
   };
+  onboarding: {
+    completionPercent: number;
+    steps: Array<{
+      id: string;
+      title: string;
+      description: string;
+      status: "complete" | "pending";
+      href: string | null;
+    }>;
+  };
   recentAdmissions: Array<{
     id: string;
     applicantName: string;
@@ -228,6 +238,44 @@ export async function getAdminDashboardSummary({
   const outstandingFeesCurrency =
     feeAlerts.find((alert) => alert.currency)?.currency ?? "INR";
 
+  const onboardingSteps = [
+    {
+      id: "review-admissions",
+      title: "Review in-flight admissions",
+      description: "Verify documents, schedule interviews, and issue decisions",
+      status: pendingAdmissionsCount > 0 ? "pending" : "complete",
+      href: "/admin/admissions",
+    },
+    {
+      id: "clear-documents",
+      title: "Clear the document review queue",
+      description: "Assign reviewers and log outcomes for recent submissions",
+      status: documentsUnderReviewCount > 0 ? "pending" : "complete",
+      href: "/admin/documents",
+    },
+    {
+      id: "settle-fees",
+      title: "Follow up on outstanding fees",
+      description: "Send reminders or record payments for overdue invoices",
+      status: outstandingFees > 0 ? "pending" : "complete",
+      href: "/admin/finance",
+    },
+    {
+      id: "plan-meetings",
+      title: "Plan upcoming governance meetings",
+      description: "Align scholars and supervisors on timelines and expectations",
+      status: upcomingMeetings.length > 0 ? "complete" : "pending",
+      href: "/admin/meetings",
+    },
+  ] as const;
+
+  const completedSteps = onboardingSteps.filter(
+    (step) => step.status === "complete"
+  ).length;
+  const onboardingCompletionPercent = Math.round(
+    (completedSteps / onboardingSteps.length) * 100
+  );
+
   return {
     metrics: {
       activeScholars: activeScholarCount,
@@ -235,6 +283,10 @@ export async function getAdminDashboardSummary({
       documentsUnderReview: documentsUnderReviewCount,
       outstandingFees,
       outstandingFeesCurrency,
+    },
+    onboarding: {
+      completionPercent: onboardingCompletionPercent,
+      steps: onboardingSteps.map((step) => ({ ...step })),
     },
     recentAdmissions: recentAdmissions.map((item) => ({
       id: item.id,

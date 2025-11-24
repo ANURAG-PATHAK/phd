@@ -6,6 +6,8 @@ import { useTransition } from "react";
 import { signOut } from "next-auth/react";
 import { icons, LogOut, Settings, UserRound } from "lucide-react";
 
+import type { NavigationItem } from "@/lib/navigation/types";
+
 import {
     Sidebar,
     SidebarContent,
@@ -29,14 +31,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 
-type IconName = keyof typeof icons;
-
-export type DashboardNavItem = {
-    title: string;
-    href: string;
-    icon?: IconName;
-    badge?: string;
-};
+export type DashboardNavItem = NavigationItem;
 
 type DashboardShellProps = {
     navItems: DashboardNavItem[];

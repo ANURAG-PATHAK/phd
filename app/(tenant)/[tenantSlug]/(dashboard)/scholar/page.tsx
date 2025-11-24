@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
     CalendarClock,
+    CheckCircle2,
+    Circle,
     FileStack,
     MessageCircle,
     Target,
@@ -8,10 +11,12 @@ import {
 } from "lucide-react";
 
 import { MetricCard } from "@/app/(tenant)/[tenantSlug]/(dashboard)/_components/metric-card";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth/session";
-import { getScholarDashboardSummary } from "@/lib/dashboard/scholar";
 import { ensureTenantMembership } from "@/lib/auth/navigation";
+import type { ScholarDashboardSummary } from "@/lib/dashboard/scholar";
+import { fetchTenantApi } from "@/lib/api/tenant-fetch";
 
 function titleCase(value: string) {
     return value
@@ -49,20 +54,22 @@ export default async function ScholarOverviewPage({
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
         tenantSlug,
+        roleKey: "SCHOLAR",
     });
 
     if (membership.roleKey !== "SCHOLAR") {
         notFound();
     }
 
-    const summary = await getScholarDashboardSummary({
-        tenantId: membership.tenantId,
-        membershipId: membership.membershipId,
-    });
+    const summary = await fetchTenantApi<ScholarDashboardSummary>(
+        tenantSlug,
+        "/scholar/dashboard"
+    );
 
     const nextMeeting = summary.meetings[0] ?? null;
     const outstandingFees = summary.finances.outstandingAmount;
     const currency = summary.finances.currency ?? "INR";
+    const dashboardBaseHref = `/${tenantSlug}`;
 
     return (
         <div className="space-y-8">
@@ -74,6 +81,77 @@ export default async function ScholarOverviewPage({
                     Welcome back, {session.user.name ?? session.user.email}. Keep your milestones, submissions, and meetings on track.
                 </p>
             </div>
+
+            <Card className="border-border/60 bg-card/70">
+                <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-foreground">
+                        Scholar onboarding
+                    </CardTitle>
+                    <CardDescription>
+                        Quick actions to finalise your profile and keep supervisors in sync
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div>
+                        <div className="flex items-center justify-between text-sm font-medium text-foreground">
+                            <span>{summary.onboarding.completionPercent}% complete</span>
+                            <span>
+                                {summary.onboarding.steps.filter((step) => step.status === "complete").length}&nbsp;/&nbsp;
+                                {summary.onboarding.steps.length} tasks
+                            </span>
+                        </div>
+                        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                                className="h-full rounded-full bg-primary transition-all"
+                                style={{ width: `${summary.onboarding.completionPercent}%` }}
+                                aria-hidden="true"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {summary.onboarding.steps.map((step) => {
+                            const Icon = step.status === "complete" ? CheckCircle2 : Circle;
+                            const targetHref = step.href ? `${dashboardBaseHref}${step.href}` : null;
+                            return (
+                                <Card key={step.id} className="border-border/60 bg-background/80">
+                                    <CardContent className="flex items-start gap-3 p-4">
+                                        <Icon
+                                            className={
+                                                step.status === "complete"
+                                                    ? "mt-0.5 h-4 w-4 text-emerald-500"
+                                                    : "mt-0.5 h-4 w-4 text-muted-foreground"
+                                            }
+                                            aria-hidden="true"
+                                        />
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-sm font-semibold text-foreground">
+                                                    {step.title}
+                                                </p>
+                                                <Badge variant={step.status === "complete" ? "secondary" : "outline"} className="text-[0.65rem] uppercase tracking-wide">
+                                                    {step.status === "complete" ? "Done" : "Pending"}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                                {step.description}
+                                            </p>
+                                            {targetHref ? (
+                                                <Link
+                                                    href={targetHref}
+                                                    className="text-sm font-medium text-primary hover:underline"
+                                                >
+                                                    View details
+                                                </Link>
+                                            ) : null}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <MetricCard

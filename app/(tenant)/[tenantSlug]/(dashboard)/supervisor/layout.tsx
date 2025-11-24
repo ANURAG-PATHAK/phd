@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import {
-    DashboardShell,
-    type DashboardNavItem,
-} from "@/app/(tenant)/[tenantSlug]/(dashboard)/_components/dashboard-shell";
+import { DashboardShell } from "@/app/(tenant)/[tenantSlug]/(dashboard)/_components/dashboard-shell";
 import { requireSession } from "@/lib/auth/session";
 import { ensureTenantMembership } from "@/lib/auth/navigation";
+import { fetchTenantNavigation } from "@/lib/navigation/load-nav";
 
 export default async function SupervisorLayout({
     children,
@@ -19,39 +17,14 @@ export default async function SupervisorLayout({
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
         tenantSlug,
+        roleKey: "SUPERVISOR",
     });
 
     if (membership.roleKey !== "SUPERVISOR") {
         notFound();
     }
 
-    const navItems: DashboardNavItem[] = [
-        {
-            title: "Overview",
-            href: `/${tenantSlug}/supervisor`,
-            icon: "LayoutDashboard",
-        },
-        {
-            title: "Scholars",
-            href: `/${tenantSlug}/supervisor/scholars`,
-            icon: "Users",
-        },
-        {
-            title: "Meetings",
-            href: `/${tenantSlug}/supervisor/meetings`,
-            icon: "CalendarClock",
-        },
-        {
-            title: "Documents",
-            href: `/${tenantSlug}/supervisor/documents`,
-            icon: "FileStack",
-        },
-        {
-            title: "Messages",
-            href: `/${tenantSlug}/supervisor/messages`,
-            icon: "MessageSquare",
-        },
-    ];
+    const navItems = await fetchTenantNavigation(tenantSlug, membership.roleKey);
 
     return (
         <DashboardShell

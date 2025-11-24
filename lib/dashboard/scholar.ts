@@ -31,6 +31,16 @@ export type ScholarDashboardSummary = {
       name: string;
     }>;
   };
+  onboarding: {
+    completionPercent: number;
+    steps: Array<{
+      id: string;
+      title: string;
+      description: string;
+      status: "complete" | "pending";
+      href: string | null;
+    }>;
+  };
   progress: {
     totalMilestones: number;
     completedMilestones: number;
@@ -280,6 +290,57 @@ export async function getScholarDashboardSummary({
       }
     : null;
 
+  const synopsisDocument = documents.find(
+    (item) => item.type === DocumentType.SYNOPSIS
+  );
+
+  const onboardingSteps = [
+    {
+      id: "profile-details",
+      title: "Confirm your scholar profile",
+      description:
+        "Add your research focus and specialization so supervisors see the latest context",
+      status:
+        profile.researchTitle && profile.specialization
+          ? "complete"
+          : "pending",
+      href: "/scholar",
+    },
+    {
+      id: "submit-synopsis",
+      title: "Submit your synopsis draft",
+      description:
+        "Upload the latest synopsis for supervisor review and comments",
+      status:
+        synopsisDocument && synopsisDocument.status !== DocumentStatus.DRAFT
+          ? "complete"
+          : "pending",
+      href: "/scholar/documents",
+    },
+    {
+      id: "enrol-coursework",
+      title: "Enroll in required coursework",
+      description:
+        "Track credit-bearing modules and keep your transcript current",
+      status: profile.courseEnrollments.length > 0 ? "complete" : "pending",
+      href: "/scholar/coursework",
+    },
+    {
+      id: "schedule-meeting",
+      title: "Schedule your supervisor check-in",
+      description: "Align on milestones and open risks in a dedicated session",
+      status: meetings.length > 0 ? "complete" : "pending",
+      href: "/scholar/meetings",
+    },
+  ] as const;
+
+  const onboardingCompletedSteps = onboardingSteps.filter(
+    (step) => step.status === "complete"
+  ).length;
+  const onboardingCompletionPercent = Math.round(
+    (onboardingCompletedSteps / onboardingSteps.length) * 100
+  );
+
   return {
     profile: {
       id: profile.id,
@@ -293,6 +354,10 @@ export async function getScholarDashboardSummary({
         role: item.role,
         name: personName(item.supervisor.user),
       })),
+    },
+    onboarding: {
+      completionPercent: onboardingCompletionPercent,
+      steps: onboardingSteps.map((step) => ({ ...step })),
     },
     progress: {
       totalMilestones,

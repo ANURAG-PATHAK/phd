@@ -15,6 +15,7 @@ export default async function AdminUsersPage({
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
         tenantSlug,
+        roleKey: ["ADMIN", "SUPER_ADMIN"],
     });
 
     if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {

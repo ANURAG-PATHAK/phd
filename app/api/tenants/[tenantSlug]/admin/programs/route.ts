@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { listTenantMembers, updateTenantMembershipStatus } from "@/lib/admin/users";
-import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
+import { listPrograms, createProgram } from "@/lib/admin/programs";
 import {
   ForbiddenError,
   UnauthorizedError,
   requireMembership,
   requireSession,
 } from "@/lib/auth/session";
+import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
 
 export async function GET(
   _request: NextRequest,
@@ -22,12 +22,11 @@ export async function GET(
     });
 
     if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {
-      throw new ForbiddenError("Admin privileges are required");
+      throw new ForbiddenError("Admin privileges required");
     }
 
-    const members = await listTenantMembers(membership.tenantId);
-
-    return NextResponse.json({ data: members });
+    const programs = await listPrograms(membership.tenantId);
+    return NextResponse.json(programs);
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -36,21 +35,20 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    console.error("Admin users GET error", error);
+    console.error("Admin programs API error", error);
     return NextResponse.json(
-      { error: "Unable to load tenant users" },
+      { error: "Unable to load programs" },
       { status: 500 }
     );
   }
 }
 
-export async function PATCH(
+export async function POST(
   request: NextRequest,
   context: { params: Promise<{ tenantSlug: string }> }
 ) {
   try {
     const { tenantSlug } = await context.params;
-    const body = await request.json();
     const session = await requireSession();
     const membership = requireMembership(session, {
       tenantSlug,
@@ -58,26 +56,21 @@ export async function PATCH(
     });
 
     if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {
-      throw new ForbiddenError("Admin privileges are required");
+      throw new ForbiddenError("Admin privileges required");
     }
 
-    const { membershipId, status } = body ?? {};
+    const payload = await request.json();
 
-    if (!membershipId || !status) {
-      return NextResponse.json(
-        { error: "membershipId and status are required" },
-        { status: 400 }
-      );
-    }
-
-    const updatedMembership = await updateTenantMembershipStatus({
+    const program = await createProgram({
       tenantId: membership.tenantId,
-      membershipId,
-      status,
-      actingMembershipId: membership.membershipId,
+      name: payload.name,
+      code: payload.code,
+      durationMonths: Number(payload.durationMonths),
+      courseworkRequired: payload.courseworkRequired ?? true,
+      departmentId: payload.departmentId,
     });
 
-    return NextResponse.json({ data: updatedMembership });
+    return NextResponse.json(program, { status: 201 });
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -86,9 +79,12 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    console.error("Admin users PATCH error", error);
+    console.error("Create program API error", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to update membership" },
+      {
+        error:
+          error instanceof Error ? error.message : "Unable to create program",
+      },
       { status: 500 }
     );
   }

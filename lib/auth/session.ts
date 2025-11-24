@@ -1,5 +1,6 @@
 import { cache } from "react";
 
+import type { RoleKey } from "@prisma/client";
 import type { Session } from "next-auth";
 import { getServerSession } from "next-auth";
 
@@ -32,36 +33,88 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
+function normalizeRoleKeys(
+  roleKey?: RoleKey | RoleKey[]
+): RoleKey[] | undefined {
+  if (!roleKey) {
+    return undefined;
+  }
+  return Array.isArray(roleKey) ? roleKey : [roleKey];
+}
+
+function matchesRole(
+  membership: SessionMembership,
+  roleKeys?: RoleKey[]
+): boolean {
+  if (!roleKeys?.length) {
+    return true;
+  }
+  return roleKeys.includes(membership.roleKey);
+}
+
 export function findMembershipByTenantId(
   session: Session,
-  tenantId: string
+  tenantId: string,
+  roleKeys?: RoleKey[]
 ): SessionMembership | undefined {
-  return session.user.memberships.find(
+  const scoped = session.user.memberships.filter(
     (membership) => membership.tenantId === tenantId
   );
+
+  if (!scoped.length) {
+    return undefined;
+  }
+
+  return scoped.find((membership) => matchesRole(membership, roleKeys)) ?? scoped[0];
 }
 
 export function findMembershipByTenantSlug(
   session: Session,
-  tenantSlug: string
+  tenantSlug: string,
+  roleKeys?: RoleKey[]
 ): SessionMembership | undefined {
-  return session.user.memberships.find(
+  const scoped = session.user.memberships.filter(
     (membership) => membership.tenantSlug === tenantSlug
   );
+
+  if (!scoped.length) {
+    return undefined;
+  }
+
+  return scoped.find((membership) => matchesRole(membership, roleKeys)) ?? scoped[0];
 }
 
 export function requireMembership(
   session: Session,
-  criteria: { tenantId?: string; tenantSlug?: string }
+  criteria: {
+    tenantId?: string;
+    tenantSlug?: string;
+    roleKey?: RoleKey | RoleKey[];
+  }
 ): SessionMembership {
-  const membership = criteria.tenantId
-    ? findMembershipByTenantId(session, criteria.tenantId)
-    : criteria.tenantSlug
-    ? findMembershipByTenantSlug(session, criteria.tenantSlug)
-    : undefined;
+  const roleKeys = normalizeRoleKeys(criteria.roleKey);
+
+  let membership: SessionMembership | undefined;
+  if (criteria.tenantId) {
+    membership = findMembershipByTenantId(
+      session,
+      criteria.tenantId,
+      roleKeys
+    );
+  } else if (criteria.tenantSlug) {
+    membership = findMembershipByTenantSlug(
+      session,
+      criteria.tenantSlug,
+      roleKeys
+    );
+  }
 
   if (!membership) {
     throw new ForbiddenError("Missing required tenant membership");
+  }
+
+  if (roleKeys?.length && !matchesRole(membership, roleKeys)) {
+    throw new ForbiddenError("Missing required role membership");
   }
 
   return membership;

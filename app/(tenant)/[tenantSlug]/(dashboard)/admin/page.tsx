@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
     FileStack,
@@ -5,9 +6,12 @@ import {
     NotebookPen,
     Users,
     Wallet,
+    CheckCircle2,
+    Circle,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { MetricCard } from "@/app/(tenant)/[tenantSlug]/(dashboard)/_components/metric-card";
 import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
 import { requireSession } from "@/lib/auth/session";
@@ -47,6 +51,7 @@ export default async function AdminOverviewPage({
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
         tenantSlug,
+        roleKey: ["ADMIN", "SUPER_ADMIN"],
     });
 
     if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {
@@ -58,6 +63,7 @@ export default async function AdminOverviewPage({
     });
 
     const currency = dashboard.metrics.outstandingFeesCurrency ?? "INR";
+    const onboarding = dashboard.onboarding;
 
     return (
         <div className="space-y-8">
@@ -69,6 +75,71 @@ export default async function AdminOverviewPage({
                     Monitor tenant-wide operations, admissions, finance, and compliance for {membership.tenantName}.
                 </p>
             </div>
+
+            <Card className="border-border/60 bg-card/70">
+                <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-foreground">
+                        Operations onboarding
+                    </CardTitle>
+                    <CardDescription>
+                        {onboarding.completionPercent === 100
+                            ? "All baseline workflows are humming. Keep monitoring dashboards for fresh activity."
+                            : "Work through these checkpoints to keep admissions, finance, and compliance on track."}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div>
+                        <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
+                            <span>Progress</span>
+                            <span className="font-medium text-foreground">{onboarding.completionPercent}%</span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-muted">
+                            <div
+                                className="h-full rounded-full bg-primary transition-all"
+                                style={{ width: `${onboarding.completionPercent}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {onboarding.steps.map((step) => {
+                            const isComplete = step.status === "complete";
+                            const Icon = isComplete ? CheckCircle2 : Circle;
+
+                            return (
+                                <div
+                                    key={step.id}
+                                    className="flex flex-col gap-3 rounded-xl border border-border/60 bg-background/80 p-4 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <Icon
+                                            className={isComplete ? "mt-0.5 h-5 w-5 text-emerald-500" : "mt-0.5 h-5 w-5 text-muted-foreground"}
+                                            aria-hidden="true"
+                                        />
+                                        <div>
+                                            <div className="text-sm font-semibold text-foreground">{step.title}</div>
+                                            <p className="text-xs text-muted-foreground">{step.description}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Badge variant={isComplete ? "secondary" : "default"} className="uppercase tracking-wide">
+                                            {isComplete ? "Complete" : "Pending"}
+                                        </Badge>
+                                        {step.href ? (
+                                            <Link
+                                                href={`/${tenantSlug}${step.href}`}
+                                                className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                                            >
+                                                Open workspace
+                                            </Link>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <MetricCard

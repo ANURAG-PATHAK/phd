@@ -27,6 +27,7 @@ export default async function SupervisorOverviewPage({
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
         tenantSlug: params.tenantSlug,
+        roleKey: "SUPERVISOR",
     });
 
     if (membership.roleKey !== "SUPERVISOR") {

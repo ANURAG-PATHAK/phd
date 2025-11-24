@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getScholarDashboardSummary } from "@/lib/dashboard/scholar";
+import { createCourse } from "@/lib/admin/programs";
 import {
   ForbiddenError,
   UnauthorizedError,
   requireMembership,
   requireSession,
 } from "@/lib/auth/session";
+import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
 
-export async function GET(
-  _request: NextRequest,
+export async function POST(
+  request: NextRequest,
   context: { params: Promise<{ tenantSlug: string }> }
 ) {
   try {
@@ -17,19 +18,24 @@ export async function GET(
     const session = await requireSession();
     const membership = requireMembership(session, {
       tenantSlug,
-      roleKey: "SCHOLAR",
+      roleKey: ["ADMIN", "SUPER_ADMIN"],
     });
 
-    if (membership.roleKey !== "SCHOLAR") {
-      throw new ForbiddenError("Scholar access is required for this view");
+    if (!hasAnyRole(membership, MANAGEMENT_ROLES)) {
+      throw new ForbiddenError("Admin privileges required");
     }
 
-    const summary = await getScholarDashboardSummary({
+    const payload = await request.json();
+
+    const course = await createCourse({
       tenantId: membership.tenantId,
-      membershipId: membership.membershipId,
+      programId: payload.programId,
+      code: payload.code,
+      title: payload.title,
+      credits: Number(payload.credits),
     });
 
-    return NextResponse.json(summary);
+    return NextResponse.json(course, { status: 201 });
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -38,9 +44,12 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
 
-    console.error("Scholar dashboard API error", error);
+    console.error("Create course API error", error);
     return NextResponse.json(
-      { error: "Unable to load scholar dashboard summary" },
+      {
+        error:
+          error instanceof Error ? error.message : "Unable to create course",
+      },
       { status: 500 }
     );
   }

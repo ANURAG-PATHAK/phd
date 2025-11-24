@@ -24,6 +24,7 @@ export default async function DeveloperOverviewPage({
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
         tenantSlug: params.tenantSlug,
+        roleKey: "DEVELOPER",
     });
 
     if (membership.roleKey !== "DEVELOPER") {

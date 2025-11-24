@@ -67,7 +67,12 @@ export function resolveDefaultDashboardPath(session: Session): string {
 
 export function ensureTenantMembership(
   session: Session,
-  criteria: { tenantSlug?: string; tenantId?: string; fallback?: string }
+  criteria: {
+    tenantSlug?: string;
+    tenantId?: string;
+    fallback?: string;
+    roleKey?: RoleKey | RoleKey[];
+  }
 ): SessionMembership {
   try {
     return requireMembership(session, criteria);
