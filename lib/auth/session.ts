@@ -65,7 +65,9 @@ export function findMembershipByTenantId(
     return undefined;
   }
 
-  return scoped.find((membership) => matchesRole(membership, roleKeys)) ?? scoped[0];
+  return (
+    scoped.find((membership) => matchesRole(membership, roleKeys)) ?? scoped[0]
+  );
 }
 
 export function findMembershipByTenantSlug(
@@ -81,7 +83,9 @@ export function findMembershipByTenantSlug(
     return undefined;
   }
 
-  return scoped.find((membership) => matchesRole(membership, roleKeys)) ?? scoped[0];
+  return (
+    scoped.find((membership) => matchesRole(membership, roleKeys)) ?? scoped[0]
+  );
 }
 
 export function requireMembership(
@@ -96,11 +100,7 @@ export function requireMembership(
 
   let membership: SessionMembership | undefined;
   if (criteria.tenantId) {
-    membership = findMembershipByTenantId(
-      session,
-      criteria.tenantId,
-      roleKeys
-    );
+    membership = findMembershipByTenantId(session, criteria.tenantId, roleKeys);
   } else if (criteria.tenantSlug) {
     membership = findMembershipByTenantSlug(
       session,

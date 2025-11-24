@@ -1,6 +1,9 @@
 import { sendEmail } from "@/lib/email/mailer";
 
-const fallbackAppUrl = process.env.NEXTAUTH_URL ?? process.env.APP_BASE_URL ?? "http://localhost:3000";
+const fallbackAppUrl =
+  process.env.NEXTAUTH_URL ??
+  process.env.APP_BASE_URL ??
+  "http://localhost:3000";
 
 export async function sendScholarInvitationEmail(params: {
   recipientEmail: string;

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { listTenantMembers, updateTenantMembershipStatus } from "@/lib/admin/users";
+import {
+  listTenantMembers,
+  updateTenantMembershipStatus,
+} from "@/lib/admin/users";
 import { MANAGEMENT_ROLES, hasAnyRole } from "@/lib/auth/rbac";
 import {
   ForbiddenError,
@@ -88,7 +91,12 @@ export async function PATCH(
 
     console.error("Admin users PATCH error", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to update membership" },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to update membership",
+      },
       { status: 500 }
     );
   }

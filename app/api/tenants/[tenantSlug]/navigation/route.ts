@@ -25,7 +25,9 @@ export async function GET(
 ) {
   try {
     const { tenantSlug } = await context.params;
-    const roleKey = parseRoleKey(new URL(_request.url).searchParams.get("role"));
+    const roleKey = parseRoleKey(
+      new URL(_request.url).searchParams.get("role")
+    );
     const session = await requireSession();
     const membership = requireMembership(session, {
       tenantSlug,

@@ -1,10 +1,13 @@
 import nodemailer from "nodemailer";
 
 const smtpHost = process.env.SMTP_HOST;
-const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
+const smtpPort = process.env.SMTP_PORT
+  ? Number(process.env.SMTP_PORT)
+  : undefined;
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
-const smtpFrom = process.env.SMTP_FROM ?? process.env.MAIL_FROM ?? "no-reply@researchx.test";
+const smtpFrom =
+  process.env.SMTP_FROM ?? process.env.MAIL_FROM ?? "no-reply@researchx.test";
 
 const canSend = Boolean(smtpHost && smtpPort && smtpUser && smtpPass);
 
