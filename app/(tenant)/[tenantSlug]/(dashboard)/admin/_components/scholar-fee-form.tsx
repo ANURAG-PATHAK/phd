@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type ScholarOption = {
     id: string;
@@ -24,6 +26,11 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
     const [message, setMessage] = useState<{ type: "success" | "error"; label: string } | null>(null);
     const [scholarId, setScholarId] = useState("");
     const [entryType, setEntryType] = useState("fee");
+    const [dueDate, setDueDate] = useState<Date | undefined>();
+    const [paidAt, setPaidAt] = useState<Date | undefined>();
+
+    const dueDateValue = dueDate ? format(dueDate, "yyyy-MM-dd") : "";
+    const paidAtValue = paidAt ? format(paidAt, "yyyy-MM-dd") : "";
 
     return (
         <form
@@ -42,13 +49,13 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
                     referenceNumber: formData.get("referenceNumber")?.toString().trim() || undefined,
                 };
 
-                const dueDate = formData.get("dueDate")?.toString();
-                if (dueDate) {
-                    payload.dueDate = dueDate;
+                const dueDateFromForm = formData.get("dueDate")?.toString();
+                if (dueDateFromForm) {
+                    payload.dueDate = dueDateFromForm;
                 }
-                const paidAt = formData.get("paidAt")?.toString();
-                if (paidAt) {
-                    payload.paidAt = paidAt;
+                const paidAtFromForm = formData.get("paidAt")?.toString();
+                if (paidAtFromForm) {
+                    payload.paidAt = paidAtFromForm;
                 }
 
                 if (!payload.scholarId || (payload.amount as number) <= 0) {
@@ -74,6 +81,8 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
                         event.currentTarget.reset();
                         setScholarId("");
                         setEntryType("fee");
+                        setDueDate(undefined);
+                        setPaidAt(undefined);
                         setMessage({ type: "success", label: "Fee entry added successfully." });
                         router.refresh();
                     } catch (error) {
@@ -136,11 +145,25 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="dueDate">Due date</Label>
-                    <Input id="dueDate" name="dueDate" type="date" disabled={isPending} />
+                    <DatePicker
+                        id="dueDate"
+                        value={dueDate}
+                        onChange={setDueDate}
+                        disabled={isPending}
+                        placeholder="Select due date"
+                    />
+                    <input type="hidden" name="dueDate" value={dueDateValue} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="paidAt">Paid at</Label>
-                    <Input id="paidAt" name="paidAt" type="date" disabled={isPending} />
+                    <DatePicker
+                        id="paidAt"
+                        value={paidAt}
+                        onChange={setPaidAt}
+                        disabled={isPending}
+                        placeholder="Select payment date"
+                    />
+                    <input type="hidden" name="paidAt" value={paidAtValue} />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="description">Description</Label>
