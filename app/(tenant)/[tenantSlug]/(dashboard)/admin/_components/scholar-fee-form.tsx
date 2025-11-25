@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ScholarOption = {
     id: string;
@@ -21,6 +22,8 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [message, setMessage] = useState<{ type: "success" | "error"; label: string } | null>(null);
+    const [scholarId, setScholarId] = useState("");
+    const [entryType, setEntryType] = useState("fee");
 
     return (
         <form
@@ -69,6 +72,8 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
                         }
 
                         event.currentTarget.reset();
+                        setScholarId("");
+                        setEntryType("fee");
                         setMessage({ type: "success", label: "Fee entry added successfully." });
                         router.refresh();
                     } catch (error) {
@@ -81,37 +86,37 @@ export function ScholarFeeForm({ tenantSlug, scholars }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="scholarId">Scholar</Label>
-                    <select
-                        id="scholarId"
-                        name="scholarId"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue=""
-                        required
+                    <Select
+                        value={scholarId === "" ? undefined : scholarId}
+                        onValueChange={setScholarId}
                         disabled={isPending}
                     >
-                        <option value="" disabled>
-                            Select scholar
-                        </option>
-                        {scholars.map((scholar) => (
-                            <option key={scholar.id} value={scholar.id}>
-                                {scholar.name}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="scholarId" className="h-10 w-full">
+                            <SelectValue placeholder="Select scholar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {scholars.map((scholar) => (
+                                <SelectItem key={scholar.id} value={scholar.id}>
+                                    {scholar.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="scholarId" value={scholarId} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="type">Entry type</Label>
-                    <select
-                        id="type"
-                        name="type"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue="fee"
-                        disabled={isPending}
-                    >
-                        <option value="fee">Fee</option>
-                        <option value="payment">Payment</option>
-                        <option value="adjustment">Adjustment</option>
-                    </select>
+                    <Select value={entryType} onValueChange={setEntryType} disabled={isPending}>
+                        <SelectTrigger id="type" className="h-10 w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="fee">Fee</SelectItem>
+                            <SelectItem value="payment">Payment</SelectItem>
+                            <SelectItem value="adjustment">Adjustment</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="type" value={entryType} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="amount">Amount</Label>

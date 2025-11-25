@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Props = {
     tenantSlug: string;
@@ -15,6 +16,7 @@ export function ProgramCreateForm({ tenantSlug }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [message, setMessage] = useState<{ type: "success" | "error"; label: string } | null>(null);
+    const [courseworkRequired, setCourseworkRequired] = useState("yes");
 
     return (
         <form
@@ -53,6 +55,7 @@ export function ProgramCreateForm({ tenantSlug }: Props) {
                         }
 
                         event.currentTarget.reset();
+                        setCourseworkRequired("yes");
                         setMessage({ type: "success", label: "Program created successfully." });
                         router.refresh();
                     } catch (error) {
@@ -84,16 +87,16 @@ export function ProgramCreateForm({ tenantSlug }: Props) {
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="courseworkRequired">Coursework required?</Label>
-                    <select
-                        id="courseworkRequired"
-                        name="courseworkRequired"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue="yes"
-                        disabled={isPending}
-                    >
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
+                    <Select value={courseworkRequired} onValueChange={setCourseworkRequired} disabled={isPending}>
+                        <SelectTrigger id="courseworkRequired" className="h-10 w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="yes">Yes</SelectItem>
+                            <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="courseworkRequired" value={courseworkRequired} />
                 </div>
                 <div className="sm:col-span-2 space-y-2">
                     <Label htmlFor="departmentId">Department ID</Label>

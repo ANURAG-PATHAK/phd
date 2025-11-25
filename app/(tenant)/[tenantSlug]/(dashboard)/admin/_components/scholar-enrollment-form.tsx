@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type SelectOption = {
     id: string;
@@ -26,6 +27,9 @@ export function ScholarEnrollmentForm({ tenantSlug, scholars, courses }: Props) 
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [message, setMessage] = useState<{ type: "success" | "error"; label: string } | null>(null);
+    const [scholarId, setScholarId] = useState("");
+    const [courseId, setCourseId] = useState("");
+    const [status, setStatus] = useState("in_progress");
 
     return (
         <form
@@ -64,6 +68,9 @@ export function ScholarEnrollmentForm({ tenantSlug, scholars, courses }: Props) 
                         }
 
                         event.currentTarget.reset();
+                        setScholarId("");
+                        setCourseId("");
+                        setStatus("in_progress");
                         setMessage({ type: "success", label: "Enrollment recorded successfully." });
                         router.refresh();
                     } catch (error) {
@@ -76,58 +83,58 @@ export function ScholarEnrollmentForm({ tenantSlug, scholars, courses }: Props) 
             <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="scholarId">Scholar</Label>
-                    <select
-                        id="scholarId"
-                        name="scholarId"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue=""
-                        required
+                    <Select
+                        value={scholarId === "" ? undefined : scholarId}
+                        onValueChange={setScholarId}
                         disabled={isPending}
                     >
-                        <option value="" disabled>
-                            Select scholar
-                        </option>
-                        {scholars.map((option) => (
-                            <option key={option.id} value={option.id}>
-                                {option.name}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="scholarId" className="h-10 w-full">
+                            <SelectValue placeholder="Select scholar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {scholars.map((option) => (
+                                <SelectItem key={option.id} value={option.id}>
+                                    {option.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="scholarId" value={scholarId} />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="courseId">Course</Label>
-                    <select
-                        id="courseId"
-                        name="courseId"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue=""
-                        required
+                    <Select
+                        value={courseId === "" ? undefined : courseId}
+                        onValueChange={setCourseId}
                         disabled={isPending}
                     >
-                        <option value="" disabled>
-                            Select course
-                        </option>
-                        {courses.map((option) => (
-                            <option key={option.id} value={option.id}>
-                                {option.name} - {option.programName}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="courseId" className="h-10 w-full">
+                            <SelectValue placeholder="Select course" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {courses.map((option) => (
+                                <SelectItem key={option.id} value={option.id}>
+                                    {option.name} - {option.programName}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="courseId" value={courseId} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
-                    <select
-                        id="status"
-                        name="status"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue="in_progress"
-                        disabled={isPending}
-                    >
-                        <option value="in_progress">In progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="withdrawn">Withdrawn</option>
-                        <option value="deferred">Deferred</option>
-                    </select>
+                    <Select value={status} onValueChange={setStatus} disabled={isPending}>
+                        <SelectTrigger id="status" className="h-10 w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="in_progress">In progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                            <SelectItem value="deferred">Deferred</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="status" value={status} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="academicYear">Academic year</Label>

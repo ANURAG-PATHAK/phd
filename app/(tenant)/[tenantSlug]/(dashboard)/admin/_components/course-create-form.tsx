@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ProgramOption = {
     id: string;
@@ -21,6 +22,7 @@ export function CourseCreateForm({ tenantSlug, programs }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [message, setMessage] = useState<{ type: "success" | "error"; label: string } | null>(null);
+    const [programId, setProgramId] = useState("");
 
     return (
         <form
@@ -58,6 +60,7 @@ export function CourseCreateForm({ tenantSlug, programs }: Props) {
                         }
 
                         event.currentTarget.reset();
+                        setProgramId("");
                         setMessage({ type: "success", label: "Course created successfully." });
                         router.refresh();
                     } catch (error) {
@@ -70,23 +73,23 @@ export function CourseCreateForm({ tenantSlug, programs }: Props) {
             <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="programId">Program</Label>
-                    <select
-                        id="programId"
-                        name="programId"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        defaultValue=""
-                        required
+                    <Select
+                        value={programId === "" ? undefined : programId}
+                        onValueChange={setProgramId}
                         disabled={isPending}
                     >
-                        <option value="" disabled>
-                            Select program
-                        </option>
-                        {programs.map((program) => (
-                            <option key={program.id} value={program.id}>
-                                {program.name}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="programId" className="h-10 w-full">
+                            <SelectValue placeholder="Select program" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {programs.map((program) => (
+                                <SelectItem key={program.id} value={program.id}>
+                                    {program.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="programId" value={programId} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="code">Course code</Label>

@@ -7,6 +7,7 @@ import { AdmissionPathway, AdmissionStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ProgramOption = {
     id: string;
@@ -30,6 +31,9 @@ export function AdmissionCreateForm({ tenantSlug, programs }: Props) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [message, setMessage] = useState<{ type: "success" | "error"; label: string } | null>(null);
+    const [programId, setProgramId] = useState("");
+    const [pathway, setPathway] = useState<AdmissionPathway>(AdmissionPathway.DIRECT_OTHER);
+    const [status, setStatus] = useState<AdmissionStatus>(AdmissionStatus.APPLIED);
 
     return (
         <form
@@ -72,6 +76,9 @@ export function AdmissionCreateForm({ tenantSlug, programs }: Props) {
                         }
 
                         event.currentTarget.reset();
+                        setProgramId("");
+                        setPathway(AdmissionPathway.DIRECT_OTHER);
+                        setStatus(AdmissionStatus.APPLIED);
                         setMessage({ type: "success", label: "Admission created successfully." });
                         router.refresh();
                     } catch (error) {
@@ -96,55 +103,55 @@ export function AdmissionCreateForm({ tenantSlug, programs }: Props) {
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="programId">Program</Label>
-                    <select
-                        id="programId"
-                        name="programId"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        required
+                    <Select
+                        value={programId === "" ? undefined : programId}
+                        onValueChange={setProgramId}
                         disabled={isPending}
-                        defaultValue=""
                     >
-                        <option value="" disabled>
-                            Select program
-                        </option>
-                        {programs.map((program) => (
-                            <option key={program.id} value={program.id}>
-                                {program.name}
-                            </option>
-                        ))}
-                    </select>
+                        <SelectTrigger id="programId" className="h-10 w-full">
+                            <SelectValue placeholder="Select program" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {programs.map((program) => (
+                                <SelectItem key={program.id} value={program.id}>
+                                    {program.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="programId" value={programId} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="pathway">Pathway</Label>
-                    <select
-                        id="pathway"
-                        name="pathway"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        disabled={isPending}
-                        defaultValue={AdmissionPathway.DIRECT_OTHER}
-                    >
-                        {Object.values(AdmissionPathway).map((pathway) => (
-                            <option key={pathway} value={pathway}>
-                                {formatEnumLabel(pathway)}
-                            </option>
-                        ))}
-                    </select>
+                    <Select value={pathway} onValueChange={(value: string) => setPathway(value as AdmissionPathway)} disabled={isPending}>
+                        <SelectTrigger id="pathway" className="h-10 w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {Object.values(AdmissionPathway).map((pathwayOption) => (
+                                <SelectItem key={pathwayOption} value={pathwayOption}>
+                                    {formatEnumLabel(pathwayOption)}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="pathway" value={pathway} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
-                    <select
-                        id="status"
-                        name="status"
-                        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                        disabled={isPending}
-                        defaultValue={AdmissionStatus.APPLIED}
-                    >
-                        {Object.values(AdmissionStatus).map((status) => (
-                            <option key={status} value={status}>
-                                {formatEnumLabel(status)}
-                            </option>
-                        ))}
-                    </select>
+                    <Select value={status} onValueChange={(value: string) => setStatus(value as AdmissionStatus)} disabled={isPending}>
+                        <SelectTrigger id="status" className="h-10 w-full">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {Object.values(AdmissionStatus).map((statusOption) => (
+                                <SelectItem key={statusOption} value={statusOption}>
+                                    {formatEnumLabel(statusOption)}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <input type="hidden" name="status" value={status} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="source">Source (optional)</Label>
