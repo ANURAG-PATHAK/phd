@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RoleKey } from "@prisma/client";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -10,9 +11,9 @@ import { ensureTenantMembership } from "@/lib/auth/navigation";
 export default async function TenantHome({
     params,
 }: {
-    params: Promise<{ tenantSlug: string }>;
+    params: { tenantSlug: string };
 }) {
-    const { tenantSlug } = await params;
+    const { tenantSlug } = params;
 
     const session = await requireSession();
     const membership = ensureTenantMembership(session, {
@@ -29,7 +30,7 @@ export default async function TenantHome({
         });
     }
 
-    if (membership.roleKey === "SCHOLAR") {
+    if (membership.roleKey === RoleKey.SCHOLAR) {
         routes.push({
             label: "Scholar Workspace",
             description: "Track milestones, upload documents, and review meeting notes.",
@@ -37,7 +38,7 @@ export default async function TenantHome({
         });
     }
 
-    if (membership.roleKey === "SUPERVISOR") {
+    if (membership.roleKey === RoleKey.SUPERVISOR) {
         routes.push({
             label: "Supervisor Hub",
             description: "Review scholar progress, manage meetings, and coordinate documents.",
@@ -45,7 +46,7 @@ export default async function TenantHome({
         });
     }
 
-    if (membership.roleKey === "DEVELOPER") {
+    if (membership.roleKey === RoleKey.DEVELOPER) {
         routes.push({
             label: "Developer Console",
             description: "Monitor feature flags, audit trails, and integration health.",
