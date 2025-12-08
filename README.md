@@ -1,7 +1,7 @@
 # Research X PhD Management Platform
 
 Research X is a multi-tenant PhD lifecycle platform that serves scholars, supervisors, administrators, and developers. The stack is built on Next.js App Router, Prisma, and PostgreSQL with NextAuth credentials and Shadcn UI.
- 
+
 ## Feature Highlights
 
 - Tenant-scoped auth with role-aware redirects and dashboard shells

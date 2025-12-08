@@ -83,13 +83,7 @@ export async function getThreadInbox(params: {
         },
       },
       orderBy: [
-        {
-          messages: {
-            _max: {
-              sentAt: "desc",
-            },
-          },
-        },
+        { updatedAt: "desc" },
         { createdAt: "desc" },
       ],
       take: limit,
@@ -163,7 +157,9 @@ export async function getThreadInbox(params: {
     const latestMessage = latestMessages[index];
     const lastReadAt = readMap.get(thread.id) ?? null;
     const lastMessageAt = latestMessage?.sentAt ?? null;
-    const unread = lastMessageAt ? !lastReadAt || lastReadAt < lastMessageAt : false;
+    const unread = lastMessageAt
+      ? !lastReadAt || lastReadAt < lastMessageAt
+      : false;
     if (unread) {
       unreadCount += 1;
     }
@@ -178,8 +174,12 @@ export async function getThreadInbox(params: {
         .map((participant) => participant.membership.role?.key)
         .filter((roleKey): roleKey is RoleKey => Boolean(roleKey)),
       lastMessageAt: lastMessageAt ? lastMessageAt.toISOString() : null,
-      lastMessageSnippet: latestMessage ? normalizeSnippet(latestMessage.body) : null,
-      lastMessageAuthor: latestMessage ? personName(latestMessage.author) : null,
+      lastMessageSnippet: latestMessage
+        ? normalizeSnippet(latestMessage.body)
+        : null,
+      lastMessageAuthor: latestMessage
+        ? personName(latestMessage.author)
+        : null,
       totalMessages: thread._count.messages,
       unread,
     } satisfies ThreadInboxEntry;

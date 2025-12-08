@@ -89,9 +89,7 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          error instanceof Error
-            ? error.message
-            : "Unable to create broadcast",
+          error instanceof Error ? error.message : "Unable to create broadcast",
       },
       { status: 500 }
     );

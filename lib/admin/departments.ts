@@ -64,7 +64,9 @@ export async function createDepartment(input: CreateDepartmentInput) {
   });
 
   if (existingDepartment) {
-    throw new Error("A department with this name already exists for the tenant.");
+    throw new Error(
+      "A department with this name already exists for the tenant."
+    );
   }
 
   try {
@@ -77,8 +79,13 @@ export async function createDepartment(input: CreateDepartmentInput) {
       },
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw new Error("A department with this name already exists for the tenant.");
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new Error(
+        "A department with this name already exists for the tenant."
+      );
     }
     throw error;
   }

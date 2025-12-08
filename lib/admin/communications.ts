@@ -64,77 +64,79 @@ export async function getAdminCommunicationsSummary(params: {
   const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
 
-  const [totalThreads, participantGroups, messagesLastWeek, broadcastsLastFortnight, threads] =
-    await Promise.all([
-      prisma.messageThread.count({
-        where: { tenantId: params.tenantId },
-      }),
-      prisma.messageThreadParticipant.groupBy({
-        where: { thread: { tenantId: params.tenantId } },
-        by: ["membershipId"],
-      }),
-      prisma.message.count({
-        where: {
-          thread: { tenantId: params.tenantId },
-          sentAt: { gte: sevenDaysAgo },
-        },
-      }),
-      prisma.messageThread.count({
-        where: {
-          tenantId: params.tenantId,
-          createdAt: { gte: fourteenDaysAgo },
-        },
-      }),
-      prisma.messageThread.findMany({
-        where: { tenantId: params.tenantId },
-        orderBy: [
-          { updatedAt: "desc" },
-          { createdAt: "desc" },
-        ],
-        take: 12,
-        include: {
-          createdBy: {
-            include: {
-              user: {
-                select: {
-                  displayName: true,
-                  firstName: true,
-                  lastName: true,
-                },
+  const [
+    totalThreads,
+    participantGroups,
+    messagesLastWeek,
+    broadcastsLastFortnight,
+    threads,
+  ] = await Promise.all([
+    prisma.messageThread.count({
+      where: { tenantId: params.tenantId },
+    }),
+    prisma.messageThreadParticipant.groupBy({
+      where: { thread: { tenantId: params.tenantId } },
+      by: ["membershipId"],
+    }),
+    prisma.message.count({
+      where: {
+        thread: { tenantId: params.tenantId },
+        sentAt: { gte: sevenDaysAgo },
+      },
+    }),
+    prisma.messageThread.count({
+      where: {
+        tenantId: params.tenantId,
+        createdAt: { gte: fourteenDaysAgo },
+      },
+    }),
+    prisma.messageThread.findMany({
+      where: { tenantId: params.tenantId },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      take: 12,
+      include: {
+        createdBy: {
+          include: {
+            user: {
+              select: {
+                displayName: true,
+                firstName: true,
+                lastName: true,
               },
-              role: {
-                select: {
-                  key: true,
+            },
+            role: {
+              select: {
+                key: true,
+              },
+            },
+          },
+        },
+        participants: {
+          include: {
+            membership: {
+              include: {
+                role: {
+                  select: {
+                    key: true,
+                  },
+                },
+                user: {
+                  select: {
+                    displayName: true,
+                    firstName: true,
+                    lastName: true,
+                  },
                 },
               },
             },
           },
-          participants: {
-            include: {
-              membership: {
-                include: {
-                  role: {
-                    select: {
-                      key: true,
-                    },
-                  },
-                  user: {
-                    select: {
-                      displayName: true,
-                      firstName: true,
-                      lastName: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          _count: {
-            select: { messages: true },
-          },
         },
-      }),
-    ]);
+        _count: {
+          select: { messages: true },
+        },
+      },
+    }),
+  ]);
 
   const latestMessages = await Promise.all(
     threads.map((thread) =>
@@ -159,7 +161,8 @@ export async function getAdminCommunicationsSummary(params: {
   const threadSummaries: AdminCommunicationThread[] = threads
     .map((thread, index) => {
       const latestMessage = latestMessages[index];
-      const lastActivity = latestMessage?.sentAt ?? thread.updatedAt ?? thread.createdAt;
+      const lastActivity =
+        latestMessage?.sentAt ?? thread.updatedAt ?? thread.createdAt;
       return {
         id: thread.id,
         subject: thread.subject ?? "Untitled thread",
@@ -172,8 +175,12 @@ export async function getAdminCommunicationsSummary(params: {
         createdBy: personName(thread.createdBy.user),
         totalMessages: thread._count.messages,
         lastMessageAt: latestMessage?.sentAt.toISOString() ?? null,
-        lastMessageAuthor: latestMessage ? personName(latestMessage.author) : null,
-        lastMessageSnippet: latestMessage ? normalizeSnippet(latestMessage.body) : null,
+        lastMessageAuthor: latestMessage
+          ? personName(latestMessage.author)
+          : null,
+        lastMessageSnippet: latestMessage
+          ? normalizeSnippet(latestMessage.body)
+          : null,
         _lastActivity: lastActivity.getTime(),
       } as AdminCommunicationThread & { _lastActivity: number };
     })
@@ -201,14 +208,16 @@ export async function getAdminCommunicationsSummary(params: {
     },
   });
 
-  const activitySummaries: AdminCommunicationActivity[] = activity.map((message) => ({
-    id: message.id,
-    threadId: message.thread.id,
-    subject: message.thread.subject,
-    author: personName(message.author),
-    body: normalizeSnippet(message.body),
-    sentAt: message.sentAt.toISOString(),
-  }));
+  const activitySummaries: AdminCommunicationActivity[] = activity.map(
+    (message) => ({
+      id: message.id,
+      threadId: message.thread.id,
+      subject: message.thread.subject,
+      author: personName(message.author),
+      body: normalizeSnippet(message.body),
+      sentAt: message.sentAt.toISOString(),
+    })
+  );
 
   return {
     metrics: {
@@ -239,7 +248,10 @@ export async function createBroadcastThread(params: {
 }) {
   const subject = params.subject.trim();
   const body = params.body.trim();
-  const resolvedAudiences = params.audiences.length ? params.audiences : ["scholars"];
+  const defaultAudiences: BroadcastAudience[] = ["scholars"];
+  const resolvedAudiences = params.audiences.length
+    ? params.audiences
+    : defaultAudiences;
 
   if (!subject) {
     throw new Error("Subject is required");
@@ -284,7 +296,9 @@ export async function createBroadcastThread(params: {
     select: { id: true },
   });
 
-  const participantIds = new Set<string>(participants.map((participant) => participant.id));
+  const participantIds = new Set<string>(
+    participants.map((participant) => participant.id)
+  );
   participantIds.add(params.createdByMembershipId);
 
   const result = await prisma.$transaction(async (tx) => {
@@ -301,7 +315,10 @@ export async function createBroadcastThread(params: {
         data: Array.from(participantIds).map((membershipId) => ({
           threadId: thread.id,
           membershipId,
-          role: membershipId === params.createdByMembershipId ? "owner" : "participant",
+          role:
+            membershipId === params.createdByMembershipId
+              ? "owner"
+              : "participant",
         })),
       });
     }

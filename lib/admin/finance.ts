@@ -70,70 +70,75 @@ export async function getAdminFinanceSummary(params: {
   const now = Date.now();
   const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
 
-  const [outstandingGroup, overdueInvoices, paymentsAggregate, ledgerEntries, scholarships] =
-    await Promise.all([
-      prisma.feeLedgerEntry.groupBy({
-        by: ["currency"],
-        where: {
-          tenantId: params.tenantId,
-          type: "fee",
-          paidAt: null,
+  const [
+    outstandingGroup,
+    overdueInvoices,
+    paymentsAggregate,
+    ledgerEntries,
+    scholarships,
+  ] = await Promise.all([
+    prisma.feeLedgerEntry.groupBy({
+      by: ["currency"],
+      where: {
+        tenantId: params.tenantId,
+        type: "fee",
+        paidAt: null,
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+    prisma.feeLedgerEntry.count({
+      where: {
+        tenantId: params.tenantId,
+        type: "fee",
+        paidAt: null,
+        dueDate: {
+          lt: new Date(),
         },
-        _sum: {
-          amount: true,
-        },
-      }),
-      prisma.feeLedgerEntry.count({
-        where: {
-          tenantId: params.tenantId,
-          type: "fee",
-          paidAt: null,
-          dueDate: {
-            lt: new Date(),
-          },
-        },
-      }),
-      prisma.feeLedgerEntry.aggregate({
-        where: {
-          tenantId: params.tenantId,
-          type: "payment",
-          OR: [
-            { paidAt: { gte: thirtyDaysAgo } },
-            { createdAt: { gte: thirtyDaysAgo } },
-          ],
-        },
-        _sum: { amount: true },
-      }),
-      prisma.feeLedgerEntry.findMany({
-        where: { tenantId: params.tenantId },
-        orderBy: { createdAt: "desc" },
-        take: 16,
-        include: {
-          scholar: {
-            include: {
-              user: {
-                select: {
-                  displayName: true,
-                  firstName: true,
-                  lastName: true,
-                },
+      },
+    }),
+    prisma.feeLedgerEntry.aggregate({
+      where: {
+        tenantId: params.tenantId,
+        type: "payment",
+        OR: [
+          { paidAt: { gte: thirtyDaysAgo } },
+          { createdAt: { gte: thirtyDaysAgo } },
+        ],
+      },
+      _sum: { amount: true },
+    }),
+    prisma.feeLedgerEntry.findMany({
+      where: { tenantId: params.tenantId },
+      orderBy: { createdAt: "desc" },
+      take: 16,
+      include: {
+        scholar: {
+          include: {
+            user: {
+              select: {
+                displayName: true,
+                firstName: true,
+                lastName: true,
               },
             },
           },
         },
-      }),
-      prisma.scholarship.findMany({
-        where: { tenantId: params.tenantId },
-        include: {
-          awards: {
-            select: {
-              status: true,
-              sanctionedAmount: true,
-            },
+      },
+    }),
+    prisma.scholarship.findMany({
+      where: { tenantId: params.tenantId },
+      include: {
+        awards: {
+          select: {
+            status: true,
+            sanctionedAmount: true,
           },
         },
-      }),
-    ]);
+      },
+    }),
+  ]);
 
   let outstandingTop = {
     amount: 0,

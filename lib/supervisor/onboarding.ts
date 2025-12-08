@@ -206,13 +206,19 @@ export async function getSupervisorOnboardingSummary(params: {
 
   const profileHints: string[] = [];
   if (!supervisor.department) {
-    profileHints.push("Select your department so admins can route scholars correctly.");
+    profileHints.push(
+      "Select your department so admins can route scholars correctly."
+    );
   }
   if (!supervisor.designation) {
-    profileHints.push("Add your designation to help scholars recognise your role.");
+    profileHints.push(
+      "Add your designation to help scholars recognise your role."
+    );
   }
   if (!supervisor.bio) {
-    profileHints.push("Provide a short bio to set expectations during introductions.");
+    profileHints.push(
+      "Provide a short bio to set expectations during introductions."
+    );
   }
   if (!supervisor.availability) {
     profileHints.push("Publish availability slots to simplify scheduling.");
@@ -311,9 +317,7 @@ export async function getSupervisorOnboardingSummary(params: {
     return score;
   }, 0);
 
-  const completionPercent = Math.round(
-    (completionScore / steps.length) * 100
-  );
+  const completionPercent = Math.round((completionScore / steps.length) * 100);
 
   return {
     completionPercent,

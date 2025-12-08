@@ -61,9 +61,12 @@ export async function PATCH(
 
     const payload = await request.json();
     const name = typeof payload?.name === "string" ? payload.name : "";
-    const description = typeof payload?.description === "string" ? payload.description : null;
-    const contactEmail = typeof payload?.contactEmail === "string" ? payload.contactEmail : null;
-    const contactPhone = typeof payload?.contactPhone === "string" ? payload.contactPhone : null;
+    const description =
+      typeof payload?.description === "string" ? payload.description : null;
+    const contactEmail =
+      typeof payload?.contactEmail === "string" ? payload.contactEmail : null;
+    const contactPhone =
+      typeof payload?.contactPhone === "string" ? payload.contactPhone : null;
 
     const settings = await updateTenantSettings({
       tenantId: membership.tenantId,
