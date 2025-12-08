@@ -82,10 +82,7 @@ export async function getThreadInbox(params: {
           some: { membershipId: params.membershipId },
         },
       },
-      orderBy: [
-        { updatedAt: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
       take: limit,
       include: {
         participants: {
