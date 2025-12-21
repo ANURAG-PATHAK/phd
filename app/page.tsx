@@ -26,7 +26,7 @@ const statHighlights = [
 const servicePillars = [
   {
     title: "Admissions excellence",
-    body: "NET/JRF, RAT, and institutional intakes funnel into one workflow with interview, offer, and fee orchestration.",
+    body: "NET/JRF and institutional intakes funnel into one workflow with interview, offer, and fee orchestration.",
   },
   {
     title: "Mentorship alignment",
@@ -76,7 +76,6 @@ const subjectAreas = [
 ];
 
 const assurancePoints = [
-  "RAT schedule will be announced shortly with centralized notifications",
   "Applicants holding NET/JRF/M.Phil qualifications are invited directly for interviews",
   "Admissions are governed by SRMU's statutory and NAAC-aligned processes",
 ];
@@ -129,13 +128,13 @@ export default function Home() {
         <section className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_0.9fr] lg:items-center">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-              Admissions Open · 2025-26 (Even Semester)
+               Multi tenant phd management system
             </div>
             <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Ph.D. Programme powered by the Research & Consultancy Cell.
+              Institutional Research Management System
             </h1>
             <p className="max-w-2xl text-lg text-muted-foreground sm:text-xl">
-              A single digital command center that unifies admissions, scholar lifecycle management, consultancy projects, and statutory reporting for Shri Ramswaroop Memorial University.
+              A research & consultancy that unifies admissions, scholar lifecycle management, consultancy projects, and statutory reporting for Shri Ramswaroop Memorial University.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" asChild>
@@ -148,9 +147,6 @@ export default function Home() {
               </Button>
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-              <div>
-                <span className="font-semibold text-foreground">RAT:</span> dates will be communicated officially.
-              </div>
               <div>
                 <span className="font-semibold text-foreground">NET/JRF/M.Phil:</span> direct interview invitations.
               </div>
@@ -213,31 +209,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="space-y-6 rounded-3xl border border-border/60 bg-card/80 p-8 backdrop-blur">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary/80">
-              Subject Areas
-            </p>
-            <h2 className="text-2xl font-semibold text-foreground">
-              Interdisciplinary depth across science, engineering, management, and the humanities.
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Scholars collaborate with expert supervisors across SRMU schools to build impactful, industry-ready research output.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {subjectAreas.map((subject) => (
-              <div
-                key={subject}
-                className="flex items-center gap-3 rounded-2xl border border-border/50 bg-background/70 px-4 py-3 text-sm font-medium"
-              >
-                <span className="h-2 w-2 rounded-full bg-primary" />
-                <span>{subject}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section className="space-y-8">
           <div className="flex flex-col gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary/80">
@@ -273,7 +244,7 @@ export default function Home() {
                 Plan your doctoral journey with SRMU's Research & Consultancy Cell.
               </h3>
               <p className="text-sm text-white/80">
-                Talk to our admissions desk for programme guidance, RAT updates, and collaboration opportunities.
+                Talk to our admissions desk for programme guidance and collaboration opportunities.
               </p>
             </div>
             <div className="space-y-3 rounded-2xl bg-white/10 p-4 text-sm shadow-inner lg:justify-self-center lg:text-base">
