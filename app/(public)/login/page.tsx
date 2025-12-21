@@ -35,44 +35,41 @@ function LoginFormSkeleton() {
 
 export default function LoginPage() {
     return (
-        <div className="grid gap-10 lg:min-h-[80vh] lg:grid-cols-2 lg:items-stretch">
-            <div className="space-y-6 lg:pr-10">
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-4 py-1 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    research and consultancy
+        <div className="grid gap-12 lg:min-h-screen lg:grid-cols-[minmax(0,520px)_1fr]">
+            <div className="flex items-center justify-center">
+                <div className="w-full max-w-lg">
+                    <Suspense fallback={<LoginFormSkeleton />}>
+                        <LoginForm />
+                    </Suspense>
+                </div>
+            </div>
+            <div className="relative flex flex-col items-center justify-center gap-6 rounded-[40px] border border-border/50 bg-gradient-to-br from-background via-background/80 to-background/70 px-8 py-14 text-center lg:items-start lg:text-left">
+                <div className="pointer-events-none absolute inset-0 -z-10 rounded-[40px] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.3),_transparent_60%)]" />
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/70 px-5 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
+                    research & consultancy cell
                 </span>
+                <Image
+                    src="/Header.png"
+                    alt="research and consultancy crest"
+                    width={192}
+                    height={192}
+                    className="h-48 w-48 object-contain"
+                    priority
+                    sizes="192px"
+                />
                 <h1 className="text-balance text-4xl font-semibold text-foreground sm:text-5xl">
                     Log in to continue your research journey
                 </h1>
-                <p className="text-base text-muted-foreground sm:text-lg">
+                <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
                     Manage admissions, track milestones, and collaborate with your supervisory team from a single, secure workspace.
                 </p>
-                <div className="rounded-3xl border border-border/60 bg-card/70 p-6 text-sm leading-relaxed text-muted-foreground shadow-inner shadow-primary/5">
-                    research and consultancy keeps your data sovereign. Every workspace is siloed per tenant so administrators, supervisors, and scholars collaborate confidently.
-                </div>
-                <div className="text-sm text-muted-foreground">
-                    New here?{" "}
+                <p className="text-sm text-muted-foreground">
+                    Need access?{" "}
                     <Link className="font-medium text-primary transition-colors hover:text-primary/80" href="/register">
                         Create a tenant
                     </Link>
                     .
-                </div>
-            </div>
-            <div className="relative mt-6 flex items-center justify-center lg:mt-0">
-                <div className="relative isolate flex w-full overflow-hidden rounded-[32px] border border-border/60 bg-card/80 shadow-2xl shadow-primary/15">
-                    <Image
-                        src="/Header.png"
-                        alt="research and consultancy welcome hero"
-                        fill
-                        className="object-cover opacity-35"
-                        priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/80 to-background/90" />
-                    <div className="relative z-10 w-full max-w-lg px-8 py-10">
-                        <Suspense fallback={<LoginFormSkeleton />}>
-                            <LoginForm />
-                        </Suspense>
-                    </div>
-                </div>
+                </p>
             </div>
         </div>
     );
