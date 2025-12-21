@@ -71,7 +71,9 @@ async function ensureUniqueTenantSlug(name: string): Promise<string> {
   let candidate = base;
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const existing = await prisma.tenant.findUnique({ where: { slug: candidate } });
+    const existing = await prisma.tenant.findUnique({
+      where: { slug: candidate },
+    });
     if (!existing) {
       return candidate;
     }
